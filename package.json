@@ -1,0 +1,28 @@
+{
+  "name": "polestar-js",
+  "version": "1.0.0",
+  "description": "Implementation of the Polestar internal API in js",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/CaramelKat/polestar-js.git"
+  },
+  "main": "./main.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "graphql": "^16.0.0",
+    "graphql-request": "^7.4.0",
+    "nice-grpc": "^2.1.16",
+    "pkce-challenge": "^6.0.0",
+    "protobufjs": "^8.7.1",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "grpc-tools": "^1.13.1",
+    "ts-proto": "^2.12.0",
+    "typescript": "^7.0.2"
+  }
+}
