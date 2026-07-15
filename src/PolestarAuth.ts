@@ -52,7 +52,7 @@ class PolestarAuth {
 			const file = await readFile('.auth.json', { encoding: 'utf8' });
 			this.authData = JSON.parse(file);
 		} catch (err) {
-			console.debug(err);
+			// console.debug(err);
 		}
 	}
 

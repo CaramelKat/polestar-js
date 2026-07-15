@@ -1,7 +1,2 @@
-import { PolestarAPI } from "./src/PolestarAPI";
-import { PolestarAuth } from "./src/PolestarAuth";
-
-module.exports = {
-	PolestarAPI,
-	PolestarAuth
-}
+export { PolestarAPI } from "./src/PolestarAPI.js";
+export { PolestarAuth } from "./src/PolestarAuth.js";
