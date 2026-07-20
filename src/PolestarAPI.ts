@@ -3,10 +3,10 @@ import { PolestarAuth } from './PolestarAuth.ts';
 import { PolestarGrpc } from './PolestarGrpc.ts';
 
 import type { Car, getConsumerCarsV2 } from './types/queries/getConsumerCarsV2';
-import type { getCarImages } from './types/queries/getCarImages';
+import type { getCarImages, Image, ImageAngles } from './types/queries/getCarImages';
 
 import type { ParkingClimatization } from './compiled_proto/parkingclimatization.ts';
-import type { GetParkingClimateTimerSettingsResponse, GetParkingClimateTimersResponse } from './compiled_proto/parkingclimatetimer.ts';
+import type { GetParkingClimateTimersResponse } from './compiled_proto/parkingclimatetimer.ts';
 import type { GetOdometerResponse } from './compiled_proto/odometer.ts';
 import type { Exterior } from './compiled_proto/exterior.ts';
 import type { GetGlobalChargeTimerResponse } from './compiled_proto/chronos.ts';
@@ -144,6 +144,15 @@ class PolestarAPI {
 			modelYear: car.modelYear,
 			locale: 'us'
 		}, false)
+	}
+
+	async getCarImage(car: Car, type: 'transparent' | 'opaque', angle: ImageAngles): Promise<Image | undefined> {
+		const { getCarImages } = await this.getCarImages(car);
+		if (!getCarImages) return;
+
+		const images = type == 'transparent' ? getCarImages.transparent : getCarImages.opaque;
+
+		return images.find((image) => image.angle == angle )
 	}
 
 	async getLatestAvailability(car: Car): Promise<Availability | undefined> {

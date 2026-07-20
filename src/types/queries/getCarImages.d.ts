@@ -1,6 +1,8 @@
+export type ImageAngles = 0 | 1 | 2 | 3 | 4 | 5;
+
 export type Image = {
 	"url": string;
-	"angle": number;
+	"angle": ImageAngles;
 	"altText": string | null;
 }
 
