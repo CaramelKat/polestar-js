@@ -1,4 +1,4 @@
-# Polestar-JS
+# Polestar-API
 
 A very WIP port of the Polestar API to ts/js. Lots of implementation details are borrowed from [NorthStar.Api](https://github.com/Greg-Boyles/NorthStar.Api)
 

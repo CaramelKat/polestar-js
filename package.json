@@ -1,6 +1,6 @@
 {
-  "name": "polestar-js",
-  "version": "1.0.0",
+  "name": "polestar-api",
+  "version": "1.0.1",
   "description": "Implementation of the Polestar internal API in js",
   "type": "module",
   "repository": {
@@ -12,6 +12,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@bufbuild/protobuf": "^2.12.1",
     "graphql": "^16.0.0",
     "graphql-request": "^7.4.0",
     "nice-grpc": "^2.1.16",
