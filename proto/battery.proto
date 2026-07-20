@@ -16,6 +16,10 @@ message Battery {
   int32 estimated_distance_to_empty_km = 4;
   int32 estimated_charging_time_to_full_minutes = 5;
   int32 charger_connection_status = 6;
+  /*
+   * 2: Idle
+   * 7: Done
+   */
   int32 charging_status = 7;
   int32 estimated_distance_to_empty_miles = 8;
   int32 estimated_charging_time_minutes_to_target_distance = 9;
