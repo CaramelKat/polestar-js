@@ -9,20 +9,60 @@ import { ParkingClimateTimerServiceDefinition, GetParkingClimateTimersResponse, 
 import { ParkingClimatizationServiceDefinition, ParkingClimatization } from './compiled_proto/parkingclimatization.ts';
 
 class PolestarGrpc {
-	private C3Host = 'https://cepmobtoken.eu.prod.c3.volvocars.com';
+	private static C3DiscoveryUrl = 'https://cnepmob.volvocars.com';
+	private static C3DiscoveryAccept = 'application/volvo.cloud.cnepmob.v1+json';
 
-	private C3Channel = createChannel(this.C3Host);
+	private channelPromise: Promise<void> | undefined;
+	private availabilityClient: ReturnType<typeof createClient<typeof AvailabilityServiceDefinition>> | undefined;
+	private batteryClient: ReturnType<typeof createClient<typeof BatteryServiceDefinition>> | undefined;
+	private chargeTimerClient: ReturnType<typeof createClient<typeof GlobalChargeTimerServiceDefinition>> | undefined;
+	private exteriorClient: ReturnType<typeof createClient<typeof ExteriorServiceDefinition>> | undefined;
+	private odometerClient: ReturnType<typeof createClient<typeof OdometerServiceDefinition>> | undefined;
+	private parkingClimateTimerClient: ReturnType<typeof createClient<typeof ParkingClimateTimerServiceDefinition>> | undefined;
+	private parkingClimatizationClient: ReturnType<typeof createClient<typeof ParkingClimatizationServiceDefinition>> | undefined;
 
-	private availabilityClient         = createClient(AvailabilityServiceDefinition,         this.C3Channel);
-	private batteryClient              = createClient(BatteryServiceDefinition,              this.C3Channel);
-	private chargeTimerClient          = createClient(GlobalChargeTimerServiceDefinition,    this.C3Channel);
-	private exteriorClient             = createClient(ExteriorServiceDefinition,             this.C3Channel);
-	private odometerClient             = createClient(OdometerServiceDefinition,             this.C3Channel);
-	private parkingClimateTimerClient  = createClient(ParkingClimateTimerServiceDefinition,  this.C3Channel);
-	private parkingClimatizationClient = createClient(ParkingClimatizationServiceDefinition, this.C3Channel);
+	private async ensureClients(): Promise<void> {
+		if (!this.channelPromise) {
+			this.channelPromise = this.createClients().catch((error: unknown) => {
+				this.channelPromise = undefined;
+				throw error;
+			});
+		}
+		await this.channelPromise;
+	}
+
+	private async createClients(): Promise<void> {
+		const response = await fetch(PolestarGrpc.C3DiscoveryUrl, {
+			headers: { Accept: PolestarGrpc.C3DiscoveryAccept }
+		});
+		if (!response.ok) {
+			throw new Error(`C3 endpoint discovery failed with status ${response.status}`);
+		}
+
+		const discovery: unknown = await response.json();
+		if (
+			typeof discovery !== 'object' || discovery === null ||
+			!('c3' in discovery) || typeof discovery.c3 !== 'object' || discovery.c3 === null ||
+			!('grpcHost' in discovery.c3) || typeof discovery.c3.grpcHost !== 'string' ||
+			!('grpcPort' in discovery.c3) || typeof discovery.c3.grpcPort !== 'number' ||
+			!Number.isInteger(discovery.c3.grpcPort) || discovery.c3.grpcPort < 1 || discovery.c3.grpcPort > 65535
+		) {
+			throw new Error('C3 endpoint discovery returned an invalid response');
+		}
+
+		const channel = createChannel(`https://${discovery.c3.grpcHost}:${discovery.c3.grpcPort}`);
+		this.availabilityClient = createClient(AvailabilityServiceDefinition, channel);
+		this.batteryClient = createClient(BatteryServiceDefinition, channel);
+		this.chargeTimerClient = createClient(GlobalChargeTimerServiceDefinition, channel);
+		this.exteriorClient = createClient(ExteriorServiceDefinition, channel);
+		this.odometerClient = createClient(OdometerServiceDefinition, channel);
+		this.parkingClimateTimerClient = createClient(ParkingClimateTimerServiceDefinition, channel);
+		this.parkingClimatizationClient = createClient(ParkingClimatizationServiceDefinition, channel);
+	}
 
 	async getLatestAvailability(token: string, vin: string): Promise<Availability | undefined> {
-		const result = await this.availabilityClient.getLatestAvailability({
+		await this.ensureClients();
+		const result = await this.availabilityClient!.getLatestAvailability({
 			id: uuidV4(),
 			vin: vin
 		}, {
@@ -36,7 +76,8 @@ class PolestarGrpc {
 	}
 
 	async getLatestBattery(token: string, vin: string): Promise<Battery | undefined> {
-		const result = await this.batteryClient.getLatestBattery({
+		await this.ensureClients();
+		const result = await this.batteryClient!.getLatestBattery({
 			id: uuidV4(),
 			vin: vin
 		}, {
@@ -50,7 +91,8 @@ class PolestarGrpc {
 	}
 
 	async getGlobalChargeTimerStream(token: string, vin: string): Promise<AsyncIterable<GetGlobalChargeTimerResponse> | undefined> {
-		const result = await this.chargeTimerClient.getGlobalChargeTimerStream({
+		await this.ensureClients();
+		const result = await this.chargeTimerClient!.getGlobalChargeTimerStream({
 			request: {
 				id: uuidV4(),
 				vin: vin,
@@ -70,7 +112,8 @@ class PolestarGrpc {
 	}
 
 	async getLatestExterior(token: string, vin: string): Promise<Exterior | undefined> {
-		const result = await this.exteriorClient.getLatestExterior({
+		await this.ensureClients();
+		const result = await this.exteriorClient!.getLatestExterior({
 			id: uuidV4(),
 			vin: vin
 		}, {
@@ -84,7 +127,8 @@ class PolestarGrpc {
 	}
 
 	async getOdometer(token: string, vin: string): Promise<AsyncIterable<GetOdometerResponse> | undefined> {
-		const result = await this.odometerClient.getOdometer({
+		await this.ensureClients();
+		const result = await this.odometerClient!.getOdometer({
 			id: uuidV4(),
 			vin: vin
 		}, {
@@ -98,7 +142,8 @@ class PolestarGrpc {
 	}
 
 	async getClimateTimers(token: string, vin: string): Promise<AsyncIterable<GetParkingClimateTimersResponse> | undefined> {
-		const result = await this.parkingClimateTimerClient.getTimers({
+		await this.ensureClients();
+		const result = await this.parkingClimateTimerClient!.getTimers({
 			request: {
 				id: uuidV4(),
 				vin: vin,
@@ -118,7 +163,8 @@ class PolestarGrpc {
 	}
 
 	async getTimerSettings(token: string, vin: string): Promise<AsyncIterable<GetParkingClimateTimerSettingsResponse> | undefined> {
-		const result = await this.parkingClimateTimerClient.getTimerSettings({
+		await this.ensureClients();
+		const result = await this.parkingClimateTimerClient!.getTimerSettings({
 			request: {
 				id: uuidV4(),
 				vin: vin,
@@ -138,7 +184,8 @@ class PolestarGrpc {
 	}
 
 	async getLatestParkingClimatization(token: string, vin: string): Promise<ParkingClimatization | undefined> {
-		const result = await this.parkingClimatizationClient.getLatestParkingClimatization({
+		await this.ensureClients();
+		const result = await this.parkingClimatizationClient!.getLatestParkingClimatization({
 			id: uuidV4(),
 			vin: vin,
 		}, {
