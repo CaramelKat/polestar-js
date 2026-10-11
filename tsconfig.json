@@ -6,5 +6,9 @@
 		"rewriteRelativeImportExtensions":true,
 		"types": ["node"],
 		"outDir": "dist"
-	}
+	},
+	"exclude": [
+		"dist",
+		"test.ts"
+	]
 }

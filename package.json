@@ -7,7 +7,11 @@
     "type": "git",
     "url": "git://github.com/CaramelKat/polestar-js.git"
   },
-  "main": "./main.js",
+  "main": "./dist/main.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc"
   },
